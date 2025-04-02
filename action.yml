@@ -52,11 +52,11 @@ runs:
 
         # Project Update run
         $params = @{
-          SourceOwner =              ${{ inputs.SourceOwner }}
-          SourceProjectNumber =      ${{ inputs.SourceProjectNumber }}
-          DestinationOwner =         ${{ inputs.DestinationOwner }}
-          DestinationProjectNumber = ${{ inputs.DestinationProjectNumber }}
-          FieldSlug =                ${{ inputs.FieldSlug }}
+          SourceOwner =              "${{ inputs.SourceOwner }}"
+          SourceProjectNumber =      "${{ inputs.SourceProjectNumber }}"
+          DestinationOwner =         "${{ inputs.DestinationOwner }}"
+          DestinationProjectNumber = "${{ inputs.DestinationProjectNumber }}"
+          FieldSlug =                "${{ inputs.FieldSlug }}"
         }
         "Calling Update-ProjectItemsBetweenProjects with parameter:" | write-host
         $params | ConvertTo-Json | Out-String | write-host
