@@ -17,8 +17,7 @@ It will copy all the custom fields of source project to the custom fields of the
 
 Create the custom fields in the destination project with the same name as the source project, or with the name prefixed by the slug to have them populated.
 
-
-## Example
+## Workflow Example
 
 ```yaml
 name: Update Project Due Date
@@ -35,31 +34,52 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      GH_TOKEN: ${{ secrets.GH_PAT }}
-      DUE_OWNER: ${{ vars.DUE_OWNER }}
-      DUE_PROJECT_NUMBER: ${{vars.DUE_PROJECT_NUMBER}}
-      DUE_FIELD_NAME: ${{ vars.DUE_FIELD_NAME }}
-      DUE_STATUS: ${{ vars.DUE_STATUS }}
-      
+      GH_TOKEN:                       ${{ secrets.GH_PAT }}
+      BTW_SOURCE_OWNER:               ${{ vars.BTW_SOURCE_OWNER }}
+      BTW_DESTINATION_OWNER:          ${{ vars.BTW_DESTINATION_OWNER }}
+      BTW_SOURCE_PROJECT_NUMBER:      ${{ vars.BTW_SOURCE_PROJECT_NUMBER }}
+      BTW_DESTINATION_PROJECT_NUMBER: ${{ vars.BTW_DESTINATION_PROJECT_NUMBER }}
+      BTW_FIELD_SLUG:                 ${{ vars.BTW_FIELD_SLUG }}
 
     steps:
 
-    # Install ProjectHelper module
+      # Install ProjectHelper module
       - name: Powershell Module Setup
         uses: rulasg/psmodule-setup-action@v2
         with:
           Name: ProjectHelper
           AllowPreReleaseVersions: true
 
-      # ProjectHelper Update Status on Due Date run
-      - name: Update Project Due Dates
-        id: updated-due
-        uses: rulasg/update-ProjectItemsStatusOnDueDate@v1
+        # ProjectHelper Update Status on Due Date run
+      - name: Update Project Between Projects
+        id: updated-run
+        uses: rulasg/projecthelper-action-update-betweenprojects@dev
         with:
-          TOKEN: ${{ env.GH_TOKEN }}
-          ProjectOwner: ${{ env.DUE_OWNER }}
-          ProjectNumber: ${{ env.DUE_PROJECT_NUMBER }}
-          DueDateFieldName: ${{ env.DUE_FIELD_NAME }}
-          Status: ${{ env.DUE_STATUS }}
+          TOKEN:                    ${{ env.GH_TOKEN }}
+          SourceOwner:              ${{ env.BTW_SOURCE_OWNER }}
+          SourceProjectNumber:      ${{ env.BTW_SOURCE_PROJECT_NUMBER }}
+          DestinationOwner:         ${{ env.BTW_DESTINATION_OWNER }}
+          DestinationProjectNumber: ${{ env.BTW_DESTINATION_PROJECT_NUMBER }}
+          FieldSlug:                ${{ env.BTW_FIELD_SLUG }}
 
+```
+
+## Using repo variables
+
+You can use the following variables in your workflow to allow chainging the target projects from repo configurations.
+Use the following script to set variables and secrets. Change the --body values with yours
+
+```bash
+# Set GitHub Variables
+gh variable set BTW_SOURVER_OWNER --body "github"
+gh variable set BTW_DESTINATION_OWNER --body "github"
+gh variable set BTW_SOURCE_PROJECT_NUMBER --body "20521"
+gh variable set BTW_DESTINATION_PROJECT_NUMBER --body "9279"
+gh variable set BTW_FIELD_SLUG --body "oa_"
+
+# Set GitHub Secrets (prompting securely)
+echo "Enter GH_PAT secret:"
+gh secret set GH_PAT --body "$(read -s GH_PAT && echo $GH_PAT)"
+
+echo "All variables and secrets have been set successfully."
 ```
