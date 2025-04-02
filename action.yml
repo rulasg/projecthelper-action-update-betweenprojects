@@ -1,0 +1,93 @@
+name: 'ProjectHelper Update Between Projects'
+description: 'Sync customer fields content between projects'
+author: "rulasg"
+branding:
+  icon: "table"
+  color: "purple"
+inputs:
+  SourceOwner:
+    description: 'Source Project Owner'
+    required: true
+    # default: ${{ vars.BTW_SOURCE_OWNER }}
+  SourceProjectNumber:
+    description: 'Source Project Number'
+    required: true
+    # default: ${{ vars.BTW_SOURCE_PROJECT_NUMBER }}
+  DestinationOwner:
+    description: 'Destination Project Owner'
+    required: true
+    # default: ${{ vars.BTW_DESTINATION_OWNER }}
+  DestinationProjectNumber:
+    description: 'Destination Project Number'
+    required: true
+    # default: ${{ vars.BTW_DESTINATION_PROJECT_NUMBER }}
+  FieldSlug:
+    description: 'Field Slug'
+    required: true
+    # default: ${{ vars.BTW_FIELD_SLUG }}
+  TOKEN:
+    description: 'GitHub Token'
+    required: true
+    # default: ${{ secrets.GH_PAT }}
+  WhatIf:
+    description: 'What If'
+    required: false
+    default: "false"
+outputs:
+  updated-count:
+    description: "Number of items that have been updated"
+    value: ${{steps.update-run.outputs.updated-count}}
+runs:
+  using: "composite"
+  steps:
+    - name: Run ProjectHelper
+      id: update-run
+      env:
+        GH_TOKEN: ${{ inputs.TOKEN }}
+      shell: pwsh
+      run: |
+
+        #Load Module
+        Import-Module -Name ProjectHelper
+
+        # Project Update run
+        $params = @{
+          SourceOwner =              "${{ inputs.SourceOwner }}"
+          SourceProjectNumber =      "${{ inputs.SourceProjectNumber }}"
+          DestinationOwner =         "${{ inputs.DestinationOwner }}"
+          DestinationProjectNumber = "${{ inputs.DestinationProjectNumber }}"
+          FieldSlug =                "${{ inputs.FieldSlug }}"
+        }
+        "Calling Update-ProjectItemsBetweenProjects with parameter:" | write-host
+        $params | ConvertTo-Json | Out-String | write-host
+
+        Update-ProjectItemsBetweenProjects @params
+
+    - name: Show Update Results
+      id: show-update-results
+      shell: pwsh
+      run: |
+
+        #Load Module
+        Import-Module -Name ProjectHelper
+
+        # Read staged items
+        $staged = Show-ProjectItemStaged
+
+        # Output the changes to the console
+        $staged | ForEach-Object { "`nItem: $($_.id) - $($_.Title)`n"; Show-ProjectItemStaged -Id $_.id | ConvertTo-Json -Depth 5 | Out-String }
+
+        # Sync staged items to project
+        "Syncing staged items to project..." | write-host
+        if( "${{ inputs.WhatIf }}" -eq "false" ) {
+          "Syncing staged items to project..." | write-host
+          Sync-ProjectItemStaged
+        } else {
+          "What If is set to true, skipping Sync-ProjectItemStaged" | write-host
+        }
+
+        # Set output value
+        $count = $staged.Count ?? 0
+        "updated-count output : $count" | write-host
+        echo "updated-count = $count" >> $GITHUB_OUTPUT
+
