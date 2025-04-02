@@ -53,7 +53,7 @@ jobs:
         # ProjectHelper Update Status on Due Date run
       - name: Update Project Between Projects
         id: updated-run
-        uses: rulasg/projecthelper-action-update-betweenprojects@dev
+        uses: rulasg/projecthelper-action-update-betweenprojects@v1
         with:
           TOKEN:                    ${{ env.GH_TOKEN }}
           SourceOwner:              ${{ env.BTW_SOURCE_OWNER }}
