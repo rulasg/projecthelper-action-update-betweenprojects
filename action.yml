@@ -29,6 +29,10 @@ inputs:
     description: 'GitHub Token'
     required: true
     # default: ${{ secrets.GH_PAT }}
+  WhatIf:
+    description: 'What If'
+    required: false
+    default: "false"
 outputs:
   updated-count:
     description: "Number of items that have been updated"
@@ -48,14 +52,14 @@ runs:
 
         # Project Update run
         $params = @{
-          SourceOwner = $env:BTW_SOURCE_OWNER
-          SourceProjectNumber = $env:BTW_SOURCE_PROJECT_NUMBER
-          DestinationOwner = $env:BTW_DESTINATION_OWNER
-          DestinationProjectNumber = $env:BTW_DESTINATION_PROJECT_NUMBER
-          Slug = $env:BTW_FIELD_SLUG
+          SourceOwner =              ${{ inputs.SourceOwner }}
+          SourceProjectNumber =      ${{ inputs.SourceProjectNumber }}
+          DestinationOwner =         ${{ inputs.DestinationOwner }}
+          DestinationProjectNumber = ${{ inputs.DestinationProjectNumber }}
+          FieldSlug =                ${{ inputs.FieldSlug }}
         }
         "Calling Update-ProjectItemsBetweenProjects with parameter:" | write-host
-        $param | ConvertTo-Json | Out-String | write-host
+        $params | ConvertTo-Json | Out-String | write-host
 
         Update-ProjectItemsBetweenProjects @params
 
@@ -75,7 +79,12 @@ runs:
 
         # Sync staged items to project
         "Syncing staged items to project..." | write-host
-        Sync-ProjectItemStaged
+        if( "${{ inputs.WhatIf }}" -eq "false" ) {
+          "Syncing staged items to project..." | write-host
+          Sync-ProjectItemStaged
+        } else {
+          "What If is set to true, skipping Sync-ProjectItemStaged" | write-host
+        }
 
         # Set output value
         $count = $staged.Count ?? 0
