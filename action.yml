@@ -55,7 +55,9 @@ runs:
         # Get parameters from inputs
         $NoRefreshDestination =     "${{ inputs.SkipInitialDestinationSync }}" -eq "true"
         $NoRefreshSource =          "${{ inputs.SkipInitialSourceSync }}" -eq "true"
-        $NoSyncDestination =        "${{ inputs.SkipFinalDestinationSync }}" -eq "true"
+
+        Write-host "NoRefreshDestination: $NoRefreshDestination"
+        Write-host "NoRefreshSource: $NoRefreshSource"
 
         # Project Update run
         $params = @{
@@ -66,7 +68,6 @@ runs:
           FieldSlug =                "${{ inputs.FieldSlug }}"
           NoRefreshDestination =     $NoRefreshDestination
           NoRefreshSource =          $NoRefreshSource
-          NoSyncDestination =        $NoSyncDestination
         }
         "Calling Update-ProjectItemsBetweenProjects with parameter:" | write-host
         $params | ConvertTo-Json | Out-String | write-host
@@ -80,6 +81,10 @@ runs:
 
         #Load Module
         Import-Module -Name ProjectHelper
+
+        # Get parameters from inputs
+        $NoSyncDestination = "${{ inputs.SkipFinalDestinationSync }}" -eq "true"
+        Write-host "NoSyncDestination: $NoSyncDestination"
 
         # Read staged items
         $staged = Show-ProjectItemStaged
