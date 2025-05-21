@@ -68,8 +68,8 @@ runs:
           DestinationOwner =         "${{ inputs.DestinationOwner }}"
           DestinationProjectNumber = "${{ inputs.DestinationProjectNumber }}"
           FieldSlug =                "${{ inputs.FieldSlug }}"
-          NoRefreshDestination =     "${{ inputs.SkipInitialDestinationSync }}"
-          NoRefreshSource =          "${{ inputs.SkipInitialSourceSync }}"
+          NoRefreshDestination =     "${{ inputs.SkipInitialDestinationSync }}" -eq "true"
+          NoRefreshSource =          "${{ inputs.SkipInitialSourceSync }}" -eq "true"
         }
         "Calling Update-ProjectItemsBetweenProjects with parameter:" | write-host
         $params | ConvertTo-Json | Out-String | write-host
