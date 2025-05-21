@@ -29,10 +29,21 @@ inputs:
     description: 'GitHub Token'
     required: true
     # default: ${{ secrets.GH_PAT }}
-  WhatIf:
-    description: 'What If'
+  SkipInitialDestinationSync:
+    description: 'Skip initial synchronization of the destination project'
     required: false
-    default: "false"
+    default: false
+    type: boolean
+  SkipInitialSourceSync:
+    description: 'Skip initial synchronization of the source project'
+    required: false
+    default: false
+    type: boolean
+  SkipFinalDestinationSync:
+    description: 'Skip final synchronization of the destination project'
+    required: false
+    default: false
+    type: boolean
 outputs:
   updated-count:
     description: "Number of items that have been updated"
@@ -57,6 +68,8 @@ runs:
           DestinationOwner =         "${{ inputs.DestinationOwner }}"
           DestinationProjectNumber = "${{ inputs.DestinationProjectNumber }}"
           FieldSlug =                "${{ inputs.FieldSlug }}"
+          NoRefreshDestination =     ${{ inputs.SkipInitialDestinationSync }}
+          NoRefreshSource =          ${{ inputs.SkipInitialSourceSync }}
         }
         "Calling Update-ProjectItemsBetweenProjects with parameter:" | write-host
         $params | ConvertTo-Json | Out-String | write-host
@@ -77,13 +90,13 @@ runs:
         # Output the changes to the console
         $staged | ForEach-Object { "`nItem: $($_.id) - $($_.Title)`n"; Show-ProjectItemStaged -Id $_.id | ConvertTo-Json -Depth 5 | Out-String }
 
-        # Sync staged items to project
-        "Syncing staged items to project..." | write-host
-        if( "${{ inputs.WhatIf }}" -eq "false" ) {
+        if(-not ${{ inputs.SkipFinalDestinationSync }})
+        {
+          # Sync staged items to project
           "Syncing staged items to project..." | write-host
           Sync-ProjectItemStaged
         } else {
-          "What If is set to true, skipping Sync-ProjectItemStaged" | write-host
+          "Skipping final sync to destination project..." | write-host
         }
 
         # Set output value
