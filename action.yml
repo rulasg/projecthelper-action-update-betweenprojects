@@ -66,6 +66,7 @@ runs:
           FieldSlug =                "${{ inputs.FieldSlug }}"
           NoRefreshDestination =     $NoRefreshDestination
           NoRefreshSource =          $NoRefreshSource
+          NoSyncDestination =        $NoSyncDestination
         }
         "Calling Update-ProjectItemsBetweenProjects with parameter:" | write-host
         $params | ConvertTo-Json | Out-String | write-host
