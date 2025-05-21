@@ -8,42 +8,33 @@ inputs:
   SourceOwner:
     description: 'Source Project Owner'
     required: true
-    # default: ${{ vars.BTW_SOURCE_OWNER }}
   SourceProjectNumber:
     description: 'Source Project Number'
     required: true
-    # default: ${{ vars.BTW_SOURCE_PROJECT_NUMBER }}
   DestinationOwner:
     description: 'Destination Project Owner'
     required: true
-    # default: ${{ vars.BTW_DESTINATION_OWNER }}
   DestinationProjectNumber:
     description: 'Destination Project Number'
     required: true
-    # default: ${{ vars.BTW_DESTINATION_PROJECT_NUMBER }}
   FieldSlug:
     description: 'Field Slug'
     required: true
-    # default: ${{ vars.BTW_FIELD_SLUG }}
   TOKEN:
     description: 'GitHub Token'
     required: true
-    # default: ${{ secrets.GH_PAT }}
   SkipInitialDestinationSync:
     description: 'Skip initial synchronization of the destination project'
     required: false
-    default: false
-    type: boolean
+    default: "false"
   SkipInitialSourceSync:
     description: 'Skip initial synchronization of the source project'
     required: false
-    default: false
-    type: boolean
+    default: "false"
   SkipFinalDestinationSync:
     description: 'Skip final synchronization of the destination project'
     required: false
-    default: false
-    type: boolean
+    default: "false"
 outputs:
   updated-count:
     description: "Number of items that have been updated"
@@ -61,6 +52,11 @@ runs:
         #Load Module
         Import-Module -Name ProjectHelper
 
+        # Get parameters from inputs
+        $NoRefreshDestination =     "${{ inputs.SkipInitialDestinationSync }}" -eq "true"
+        $NoRefreshSource =          "${{ inputs.SkipInitialSourceSync }}" -eq "true"
+        $NoSyncDestination =        "${{ inputs.SkipFinalDestinationSync }}" -eq "true"
+
         # Project Update run
         $params = @{
           SourceOwner =              "${{ inputs.SourceOwner }}"
@@ -68,8 +64,8 @@ runs:
           DestinationOwner =         "${{ inputs.DestinationOwner }}"
           DestinationProjectNumber = "${{ inputs.DestinationProjectNumber }}"
           FieldSlug =                "${{ inputs.FieldSlug }}"
-          NoRefreshDestination =     "${{ inputs.SkipInitialDestinationSync }}" -eq "true"
-          NoRefreshSource =          "${{ inputs.SkipInitialSourceSync }}" -eq "true"
+          NoRefreshDestination =     $NoRefreshDestination
+          NoRefreshSource =          $NoRefreshSource
         }
         "Calling Update-ProjectItemsBetweenProjects with parameter:" | write-host
         $params | ConvertTo-Json | Out-String | write-host
@@ -90,7 +86,7 @@ runs:
         # Output the changes to the console
         $staged | ForEach-Object { "`nItem: $($_.id) - $($_.Title)`n"; Show-ProjectItemStaged -Id $_.id | ConvertTo-Json -Depth 5 | Out-String }
 
-        if(-not ${{ inputs.SkipFinalDestinationSync }})
+        if(-not $NoSyncDestination)
         {
           # Sync staged items to project
           "Syncing staged items to project..." | write-host
